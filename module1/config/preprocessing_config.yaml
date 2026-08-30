@@ -1,0 +1,30 @@
+# Module 1 Preprocessing Configuration
+
+dataset:
+  name: "ohiot1dm"
+  raw_data_dir: "OhioT1DM"
+  output_base_dir: "data"
+
+synchronization:
+  grid_step_minutes: 5
+  tolerance_minutes: 2.5
+
+missing_data:
+  max_cgm_interp_steps: 3      # 3 steps * 5 min = 15 min max interpolation
+  max_sensor_interp_steps: 3
+
+units:
+  target_temperature_unit: "degF"
+  target_glucose_unit: "mg/dL"
+
+pharmacokinetics:
+  dia_hours: 3.5              # Duration of Insulin Action in hours for IOB
+
+targets:
+  forward_horizons_mins:
+    - 30
+    - 60
+
+splitting:
+  val_fraction: 0.15          # 15% chronological tail of training split for validation
+  scaling_method: "standard"  # "standard", "robust", or "minmax"
