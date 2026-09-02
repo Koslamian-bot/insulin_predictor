@@ -1,14 +1,25 @@
-# Core Data Processing and Analysis
+# ==============================================================================
+# Final Year Project: Prediction Of Drug Dosage Of Diabetic Patients
+# Based On Ontology Mapping And Deep Learning Models
+# Python Dependencies
+# ==============================================================================
+
+# Core Data Ingestion & Preprocessing (Module 1)
 pandas>=2.0.0
 numpy>=1.24.0
 scipy>=1.10.0
-scikit-learn>=1.2.0
-PyYAML>=6.0
-pydantic>=2.0.0
-
-# Storage & Acceleration
-pyarrow>=14.0.0
+scikit-learn>=1.3.0
+matplotlib>=3.7.0
+pyyaml>=6.0
+pydantic>=2.0
 openpyxl>=3.1.0
 
-# Optional Visualizations
-matplotlib>=3.7.0
+# Ontology & Knowledge Graph Construction (Module 2)
+rdflib>=7.0.0
+torch>=2.0.0
+torch-geometric>=2.4.0
+networkx>=3.0
+
+# Interactive Demonstration & Research Visualization (Demo Module)
+streamlit>=1.35.0
+plotly>=5.20.0

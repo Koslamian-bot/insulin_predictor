@@ -33,6 +33,11 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
+        "--version",
+        action="version",
+        version="%(prog)s 1.0.0 (Module 1 Data Preprocessing Engine - powered by standard argparse)",
+    )
+    parser.add_argument(
         "--dataset",
         type=str,
         default="ohiot1dm",

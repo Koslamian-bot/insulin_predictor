@@ -38,6 +38,7 @@ HUPA-UCM Diabetes Dataset/
 data/
 data_*/
 *.parquet
+*.pt
 
 # IDE and Editor files
 .vscode/
