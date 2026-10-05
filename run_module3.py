@@ -48,6 +48,12 @@ def main():
         help="Architecture to train/evaluate (used when --mode is 'train' or 'evaluate')",
     )
     parser.add_argument(
+        "--models",
+        type=str,
+        default=None,
+        help="Comma-separated list of models to evaluate in 'compare' mode (e.g. 'gcn_lstm,gcn_gru,gcn_bilstm')",
+    )
+    parser.add_argument(
         "--epochs",
         type=int,
         default=15,
@@ -156,9 +162,13 @@ def main():
     runner = ExperimentRunner(exp_cfg)
 
     if args.mode == "compare":
-        # Run comparative benchmark across all 4 architectures
+        models_to_run = (
+            [m.strip().lower() for m in args.models.split(",") if m.strip()]
+            if args.models
+            else ["lstm", "gru", "bilstm", "gcn_lstm", "gcn_gru", "gcn_bilstm"]
+        )
         runner.run_comparative_benchmark(
-            model_types=["lstm", "gru", "bilstm", "gcn_lstm"],
+            model_types=models_to_run,
             epochs=args.epochs,
             batch_size=args.batch_size,
         )

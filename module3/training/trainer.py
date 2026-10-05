@@ -6,6 +6,8 @@ checkpoint saving, and zero-leakage verification during training.
 """
 
 import os
+import json
+import time
 import random
 import logging
 from typing import Dict, List, Any, Tuple, Optional
@@ -153,28 +155,35 @@ class Trainer:
             "val_mae": [],
             "val_rmse": [],
             "val_r2": [],
+            "epoch_duration_sec": [],
+            "learning_rate": [],
         }
 
         print(f"\nTraining Model: {self.model_name.upper()} (Parameters: {self.model.count_parameters():,})")
         print("-" * 75)
 
         for epoch in range(1, self.config.epochs + 1):
+            t0 = time.time()
             train_loss, train_metrics = self.train_epoch(train_loader)
             val_loss, val_metrics, _, _ = self.evaluate(val_loader)
             self.scheduler.step(val_loss)
+            epoch_duration = round(time.time() - t0, 2)
+            current_lr = self.optimizer.param_groups[0]['lr']
 
             history["epoch"].append(epoch)
-            history["train_loss"].append(train_loss)
-            history["train_mae"].append(train_metrics.get("mae", 0.0))
-            history["val_loss"].append(val_loss)
-            history["val_mae"].append(val_metrics.get("mae", 0.0))
-            history["val_rmse"].append(val_metrics.get("rmse", 0.0))
-            history["val_r2"].append(val_metrics.get("r2", 0.0))
+            history["train_loss"].append(float(train_loss))
+            history["train_mae"].append(float(train_metrics.get("mae", 0.0)))
+            history["val_loss"].append(float(val_loss))
+            history["val_mae"].append(float(val_metrics.get("mae", 0.0)))
+            history["val_rmse"].append(float(val_metrics.get("rmse", 0.0)))
+            history["val_r2"].append(float(val_metrics.get("r2", 0.0)))
+            history["epoch_duration_sec"].append(epoch_duration)
+            history["learning_rate"].append(float(current_lr))
 
             print(
-                f"Epoch [{epoch:02d}/{self.config.epochs:02d}] "
+                f"Epoch [{epoch:02d}/{self.config.epochs:02d}] ({epoch_duration}s) "
                 f"Train Loss: {train_loss:.4f} | Train MAE: {train_metrics.get('mae', 0.0):.3f}U | "
-                f"Val Loss: {val_loss:.4f} | Val MAE: {val_metrics.get('mae', 0.0):.3f}U | Val RMSE: {val_metrics.get('rmse', 0.0):.3f}U"
+                f"Val Loss: {val_loss:.4f} | Val MAE: {val_metrics.get('mae', 0.0):.3f}U | Val RMSE: {val_metrics.get('rmse', 0.0):.3f}U | LR: {current_lr:.6f}"
             )
 
             # Check for best model
@@ -190,11 +199,29 @@ class Trainer:
                     break
 
         print(f"[Best Checkpoint Saved]: {checkpoint_path} (Val MAE: {best_val_metrics.get('mae', 0.0):.3f} U)")
+
+        # Persist full training history as verifiable proof of training
+        results_dir = os.path.join(os.path.dirname(os.path.abspath(self.save_dir)), "results")
+        os.makedirs(results_dir, exist_ok=True)
+        history_path = os.path.join(results_dir, f"{self.model_name}_training_history.json")
+        with open(history_path, "w", encoding="utf-8") as f:
+            json.dump({
+                "model_name": self.model_name,
+                "parameters": self.model.count_parameters(),
+                "best_val_loss": float(best_val_loss),
+                "best_val_metrics": best_val_metrics,
+                "epochs_executed": len(history["epoch"]),
+                "checkpoint_path": checkpoint_path,
+                "history": history,
+            }, f, indent=2)
+        print(f"[Training History Log Saved]: {history_path}")
+
         return {
             "best_val_metrics": best_val_metrics,
             "best_val_loss": best_val_loss,
             "checkpoint_path": checkpoint_path,
             "history": history,
+            "history_path": history_path,
         }
 
     @staticmethod
